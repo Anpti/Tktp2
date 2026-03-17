@@ -9,10 +9,15 @@
 </head>
 <body>
 
-    <script src="https://cdn.jsdelivr.net/npm/@widgetbot/crate@3" async defer>
-        new Crate({
-            server: 'YOUR_SERVER_ID', // Get this from Discord Server Settings > Widget
-            channel: 'YOUR_CHANNEL_ID' // Get this by right-clicking a channel
+    <script src="https://cdn.jsdelivr.net/npm/@widgetbot/crate@3" async defer></script>
+
+    <script>
+        window.addEventListener('load', () => {
+            new Crate({
+                server: '123456789012345678', // REPLACE WITH YOUR ACTUAL ID
+                channel: '123456789012345678', // REPLACE WITH YOUR ACTUAL ID
+                shard: 'https://e.widgetbot.io'
+            })
         })
     </script>
 
